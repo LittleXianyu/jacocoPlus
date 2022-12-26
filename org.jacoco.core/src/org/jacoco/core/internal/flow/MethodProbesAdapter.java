@@ -184,4 +184,7 @@ public final class MethodProbesAdapter extends MethodVisitor {
 		return FrameSnapshot.create(analyzer, popCount);
 	}
 
+	public IProbeIdGenerator getIdGenerator() {
+		return idGenerator;
+	}
 }

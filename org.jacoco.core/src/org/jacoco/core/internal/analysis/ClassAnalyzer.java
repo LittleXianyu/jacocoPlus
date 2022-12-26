@@ -18,7 +18,9 @@ import java.util.Set;
 import org.jacoco.core.internal.analysis.filter.Filters;
 import org.jacoco.core.internal.analysis.filter.IFilter;
 import org.jacoco.core.internal.analysis.filter.IFilterContext;
+import org.jacoco.core.internal.flow.ClassProbesAdapter;
 import org.jacoco.core.internal.flow.ClassProbesVisitor;
+import org.jacoco.core.internal.flow.MethodProbesAdapter;
 import org.jacoco.core.internal.flow.MethodProbesVisitor;
 import org.jacoco.core.internal.instr.InstrSupport;
 import org.objectweb.asm.AnnotationVisitor;
@@ -31,140 +33,174 @@ import org.objectweb.asm.tree.MethodNode;
  * Analyzes the structure of a class.
  */
 public class ClassAnalyzer extends ClassProbesVisitor
-		implements IFilterContext {
+        implements IFilterContext {
 
-	private final ClassCoverageImpl coverage;
-	private final boolean[] probes;
-	private final StringPool stringPool;
+    private final ClassCoverageImpl coverage;
+    private final boolean[] probes;
+    private final StringPool stringPool;
 
-	private final Set<String> classAnnotations = new HashSet<String>();
+    private final Set<String> classAnnotations = new HashSet<String>();
 
-	private final Set<String> classAttributes = new HashSet<String>();
+    private final Set<String> classAttributes = new HashSet<String>();
 
-	private String sourceDebugExtension;
+    private String sourceDebugExtension;
 
-	private final IFilter filter;
+    private final IFilter filter;
 
-	/**
-	 * Creates a new analyzer that builds coverage data for a class.
-	 *
-	 * @param coverage
-	 *            coverage node for the analyzed class data
-	 * @param probes
-	 *            execution data for this class or <code>null</code>
-	 * @param stringPool
-	 *            shared pool to minimize the number of {@link String} instances
-	 */
-	public ClassAnalyzer(final ClassCoverageImpl coverage,
-			final boolean[] probes, final StringPool stringPool) {
-		this.coverage = coverage;
-		this.probes = probes;
-		this.stringPool = stringPool;
-		this.filter = Filters.all();
-	}
+    /**
+     * Creates a new analyzer that builds coverage data for a class.
+     *
+     * @param coverage   coverage node for the analyzed class data
+     * @param probes     execution data for this class or <code>null</code>
+     * @param stringPool shared pool to minimize the number of {@link String} instances
+     */
+    public ClassAnalyzer(final ClassCoverageImpl coverage,
+                         final boolean[] probes, final StringPool stringPool) {
+        this.coverage = coverage;
+        this.probes = probes;
+        this.stringPool = stringPool;
+        this.filter = Filters.all();
+    }
 
-	@Override
-	public void visit(final int version, final int access, final String name,
-			final String signature, final String superName,
-			final String[] interfaces) {
-		coverage.setSignature(stringPool.get(signature));
-		coverage.setSuperName(stringPool.get(superName));
-		coverage.setInterfaces(stringPool.get(interfaces));
-	}
+    @Override
+    public void visit(final int version, final int access, final String name,
+                      final String signature, final String superName,
+                      final String[] interfaces) {
+        coverage.setSignature(stringPool.get(signature));
+        coverage.setSuperName(stringPool.get(superName));
+        coverage.setInterfaces(stringPool.get(interfaces));
+    }
 
-	@Override
-	public AnnotationVisitor visitAnnotation(final String desc,
-			final boolean visible) {
-		classAnnotations.add(desc);
-		return super.visitAnnotation(desc, visible);
-	}
+    @Override
+    public AnnotationVisitor visitAnnotation(final String desc,
+                                             final boolean visible) {
+        classAnnotations.add(desc);
+        return super.visitAnnotation(desc, visible);
+    }
 
-	@Override
-	public void visitAttribute(final Attribute attribute) {
-		classAttributes.add(attribute.type);
-	}
+    @Override
+    public void visitAttribute(final Attribute attribute) {
+        classAttributes.add(attribute.type);
+    }
 
-	@Override
-	public void visitSource(final String source, final String debug) {
-		coverage.setSourceFileName(stringPool.get(source));
-		sourceDebugExtension = debug;
-	}
+    @Override
+    public void visitSource(final String source, final String debug) {
+        coverage.setSourceFileName(stringPool.get(source));
+        sourceDebugExtension = debug;
+    }
 
-	@Override
-	public MethodProbesVisitor visitMethod(final int access, final String name,
-			final String desc, final String signature,
-			final String[] exceptions) {
+    @Override
+    public MethodProbesVisitor visitMethod(final int access, final String name,
+                                           final String desc, final String signature,
+                                           final String[] exceptions) {
 
-		InstrSupport.assertNotInstrumented(name, coverage.getName());
+        InstrSupport.assertNotInstrumented(name, coverage.getName());
 
-		final InstructionsBuilder builder = new InstructionsBuilder(probes);
+        final InstructionsBuilder builder = new InstructionsBuilder(probes);
+        System.out.println("xianyu3 start name: " + name);
+        return new InnerMethodAnalyzer(builder) {
 
-		return new MethodAnalyzer(builder) {
+            @Override
+            public void accept(final MethodNode methodNode,
+                               final MethodVisitor methodVisitor) {
+                super.accept(methodNode, methodVisitor);
+                MethodProbesAdapter methodProbesAdapter = (MethodProbesAdapter) methodVisitor;
+                System.out.println("xianyu3 " + name + "   " + ((ClassProbesAdapter) methodProbesAdapter.getIdGenerator()).getCounter());
+                int probeEnd = ((ClassProbesAdapter) methodProbesAdapter.getIdGenerator()).getCounter();
+                addMethodCoverage(stringPool.get(name), stringPool.get(desc),
+                        stringPool.get(signature), builder, methodNode, getCounterStart(), probeEnd);
+            }
 
-			@Override
-			public void accept(final MethodNode methodNode,
-					final MethodVisitor methodVisitor) {
-				super.accept(methodNode, methodVisitor);
-				addMethodCoverage(stringPool.get(name), stringPool.get(desc),
-						stringPool.get(signature), builder, methodNode);
-			}
-		};
-	}
+            @Override
+            public void visitEnd() {
+                super.visitEnd();
+                // 根据diff产生的差异方法签名，在根据第一阶段获取的probes数据，bundle数据
 
-	private void addMethodCoverage(final String name, final String desc,
-			final String signature, final InstructionsBuilder icc,
-			final MethodNode methodNode) {
-		final MethodCoverageCalculator mcc = new MethodCoverageCalculator(
-				icc.getInstructions());
-		filter.filter(methodNode, this, mcc);
+                System.out.println("xianyu3 end name: " + name);
+            }
+        };
+    }
 
-		final MethodCoverageImpl mc = new MethodCoverageImpl(name, desc,
-				signature);
-		mcc.calculate(mc);
+    private void addMethodCoverage(final String name, final String desc,
+                                   final String signature, final InstructionsBuilder icc,
+                                   final MethodNode methodNode, final int probeStart, final int probeEnd) {
+        final MethodCoverageCalculator mcc = new MethodCoverageCalculator(
+                icc.getInstructions());
+        filter.filter(methodNode, this, mcc);
 
-		if (mc.containsCode()) {
-			// Only consider methods that actually contain code
-			coverage.addMethod(mc);
-		}
+        final MethodCoverageImpl mc = new MethodCoverageImpl(name, desc,
+                signature, probes);
+        mc.setProbeStart(probeStart);
+        mc.setProbeEnd(probeEnd);
 
-	}
+        mcc.calculate(mc);
 
-	@Override
-	public FieldVisitor visitField(final int access, final String name,
-			final String desc, final String signature, final Object value) {
-		InstrSupport.assertNotInstrumented(name, coverage.getName());
-		return super.visitField(access, name, desc, signature, value);
-	}
+        if (mc.containsCode()) {
+            // Only consider methods that actually contain code
+            coverage.addMethod(mc);
+        }
 
-	@Override
-	public void visitTotalProbeCount(final int count) {
-		// nothing to do
-	}
+    }
 
-	// IFilterContext implementation
+    // 可以在这里为每一个MethodCoverageImpl添加 开始结束行信息，再看下ClassAnalyzer是谁保存的
+    @Override
+    public FieldVisitor visitField(final int access, final String name,
+                                   final String desc, final String signature, final Object value) {
+        InstrSupport.assertNotInstrumented(name, coverage.getName());
+        return super.visitField(access, name, desc, signature, value);
+    }
 
-	public String getClassName() {
-		return coverage.getName();
-	}
+    @Override
+    public void visitTotalProbeCount(final int count) {
+        // nothing to do
+    }
 
-	public String getSuperClassName() {
-		return coverage.getSuperName();
-	}
+    // IFilterContext implementation
 
-	public Set<String> getClassAnnotations() {
-		return classAnnotations;
-	}
+    public String getClassName() {
+        return coverage.getName();
+    }
 
-	public Set<String> getClassAttributes() {
-		return classAttributes;
-	}
+    public String getSuperClassName() {
+        return coverage.getSuperName();
+    }
 
-	public String getSourceFileName() {
-		return coverage.getSourceFileName();
-	}
+    public Set<String> getClassAnnotations() {
+        return classAnnotations;
+    }
 
-	public String getSourceDebugExtension() {
-		return sourceDebugExtension;
-	}
+    public Set<String> getClassAttributes() {
+        return classAttributes;
+    }
+
+    public String getSourceFileName() {
+        return coverage.getSourceFileName();
+    }
+
+    public String getSourceDebugExtension() {
+        return sourceDebugExtension;
+    }
+
+    public class InnerMethodAnalyzer extends MethodAnalyzer {
+
+        /**
+         * New instance that uses the given builder.
+         *
+         * @param builder
+         */
+        InnerMethodAnalyzer(InstructionsBuilder builder) {
+            super(builder);
+        }
+
+        private int counterStart;
+
+        public int getCounterStart() {
+            return counterStart;
+        }
+
+        public void setCounterStart(int counterStart) {
+            this.counterStart = counterStart;
+        }
+    }
 
 }

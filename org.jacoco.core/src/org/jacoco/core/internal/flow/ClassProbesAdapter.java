@@ -119,4 +119,7 @@ public class ClassProbesAdapter extends ClassVisitor
 		return counter++;
 	}
 
+	public int getCounter() {
+		return counter;
+	}
 }
