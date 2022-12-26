@@ -19,61 +19,84 @@ import org.jacoco.core.analysis.IMethodCoverage;
  * Implementation of {@link IMethodCoverage}.
  */
 public class MethodCoverageImpl extends SourceNodeImpl
-		implements IMethodCoverage {
+        implements IMethodCoverage {
 
-	private final String desc;
+    private final String desc;
 
-	private final String signature;
+    private final String signature;
 
-	/**
-	 * Creates a method coverage data object with the given parameters.
-	 *
-	 * @param name
-	 *            name of the method
-	 * @param desc
-	 *            method descriptor
-	 * @param signature
-	 *            generic signature or <code>null</code>
-	 */
-	public MethodCoverageImpl(final String name, final String desc,
-			final String signature) {
-		super(ElementType.METHOD, name);
-		this.desc = desc;
-		this.signature = signature;
-	}
+    private int probeStart;
 
-	@Override
-	public void increment(final ICounter instructions, final ICounter branches,
-			final int line) {
-		super.increment(instructions, branches, line);
-		// Additionally increment complexity counter:
-		if (branches.getTotalCount() > 1) {
-			final int c = Math.max(0, branches.getCoveredCount() - 1);
-			final int m = Math.max(0, branches.getTotalCount() - c - 1);
-			this.complexityCounter = this.complexityCounter.increment(m, c);
-		}
-	}
+    private int probeEnd;
 
-	/**
-	 * This method must be called exactly once after all instructions and
-	 * branches have been incremented for this method coverage node.
-	 */
-	public void incrementMethodCounter() {
-		final ICounter base = this.instructionCounter.getCoveredCount() == 0
-				? CounterImpl.COUNTER_1_0
-				: CounterImpl.COUNTER_0_1;
-		this.methodCounter = this.methodCounter.increment(base);
-		this.complexityCounter = this.complexityCounter.increment(base);
-	}
+    private final boolean[] probes;
 
-	// === IMethodCoverage implementation ===
+    /**
+     * Creates a method coverage data object with the given parameters.
+     *
+     * @param name      name of the method
+     * @param desc      method descriptor
+     * @param signature generic signature or <code>null</code>
+     */
+    public MethodCoverageImpl(final String name, final String desc,
+                              final String signature, boolean[] probes) {
+        super(ElementType.METHOD, name);
+        this.desc = desc;
+        this.signature = signature;
+        this.probes = probes;
+    }
 
-	public String getDesc() {
-		return desc;
-	}
+    @Override
+    public void increment(final ICounter instructions, final ICounter branches,
+                          final int line) {
+        super.increment(instructions, branches, line);
+        // Additionally increment complexity counter:
+        if (branches.getTotalCount() > 1) {
+            final int c = Math.max(0, branches.getCoveredCount() - 1);
+            final int m = Math.max(0, branches.getTotalCount() - c - 1);
+            this.complexityCounter = this.complexityCounter.increment(m, c);
+        }
+    }
 
-	public String getSignature() {
-		return signature;
-	}
+    /**
+     * This method must be called exactly once after all instructions and
+     * branches have been incremented for this method coverage node.
+     */
+    public void incrementMethodCounter() {
+        final ICounter base = this.instructionCounter.getCoveredCount() == 0
+                ? CounterImpl.COUNTER_1_0
+                : CounterImpl.COUNTER_0_1;
+        this.methodCounter = this.methodCounter.increment(base);
+        this.complexityCounter = this.complexityCounter.increment(base);
+    }
 
+    // === IMethodCoverage implementation ===
+
+    public String getDesc() {
+        return desc;
+    }
+
+    public String getSignature() {
+        return signature;
+    }
+
+    public int getProbeStart() {
+        return probeStart;
+    }
+
+    public void setProbeStart(int probeStart) {
+        this.probeStart = probeStart;
+    }
+
+    public int getProbeEnd() {
+        return probeEnd;
+    }
+
+    public void setProbeEnd(int probeEnd) {
+        this.probeEnd = probeEnd;
+    }
+
+    public boolean[] getProbes() {
+        return probes;
+    }
 }
