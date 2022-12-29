@@ -13,6 +13,7 @@
 package org.jacoco.core.internal.flow;
 
 import org.jacoco.core.analysis.CoverageBuilder;
+import org.jacoco.core.internal.analysis.ClassAnalyzer;
 import org.jacoco.core.internal.diff.CodeDiffUtil;
 import org.jacoco.core.internal.instr.InstrSupport;
 import org.objectweb.asm.ClassVisitor;
@@ -72,10 +73,19 @@ public class ClassProbesAdapter extends ClassVisitor
 			// 增量代码，有点绕，由于参数定义成final,无法第二次指定,代码无法简化
 			if (null != CoverageBuilder.classInfos
 					&& !CoverageBuilder.classInfos.isEmpty()) {
-				if (CodeDiffUtil.checkMethodIn(this.name, name, desc)) {
+				if (CodeDiffUtil.checkMethodIn(this.name, name, desc,CoverageBuilder.classInfos)) {
+					System.out.println("xianyu0 classname: "+this.name+"    methodName: "+name+"   start count: "+counter);
 					methodProbes = mv;
+					if(methodProbes instanceof ClassAnalyzer.InnerMethodAnalyzer){
+						((ClassAnalyzer.InnerMethodAnalyzer)methodProbes).setCounterStart(counter);
+					}
 				} else {
 					methodProbes = EMPTY_METHOD_PROBES_VISITOR;
+//					System.out.println("xianyu0 classname: "+this.name+"    methodName: "+name+"   start count: "+counter);
+//					methodProbes = mv;
+//					if(methodProbes instanceof ClassAnalyzer.InnerMethodAnalyzer){
+//						((ClassAnalyzer.InnerMethodAnalyzer)methodProbes).setCounterStart(counter);
+//					}
 				}
 			} else {
 				methodProbes = mv;

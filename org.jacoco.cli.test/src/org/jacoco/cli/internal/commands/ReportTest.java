@@ -199,4 +199,28 @@ public class ReportTest extends CommandTestBase {
 						.isFile());
 	}
 
+	@Test
+	public void mytest3() throws Exception {
+		execute("report",
+				"/Users/cc/Project/MyProject/code-diff-source/test_data/coverage_3.exec",
+				"--middleexec",
+				"/Users/cc/Project/MyProject/code-diff-source/test_data/coverage_2.exec",
+				"--middleexec",
+				"/Users/cc/Project/MyProject/code-diff-source/test_data/coverage_1.exec",
+				"--middleclassfiles",
+				"/Users/cc/Project/MyProject/code-diff-source/test_data/class2",
+				"--middleclassfiles",
+				"/Users/cc/Project/MyProject/code-diff-source/test_data/class1",
+				"--classfiles",
+				"/Users/cc/Project/MyProject/code-diff-source/test_data/class3",
+				"--sourcefiles",
+				"/Users/cc/Project/MyProject/code-diff-source/test_data/java_source/java",
+				"--html", "/Users/cc/Project/MyProject/code-diff/html1229",
+				"--diffCode", "[{\"classFile\":\"com/htsc/android/mcrm/test/HtscTestActivity\",\"lines\":[{\"endLineNum\":218,\"startLineNum\":217,\"type\":\"INSERT\"}],\"methodInfos\":[{\"methodName\":\"onClick\",\"parameters\":[\"View\"]}],\"moduleName\":\"app\",\"type\":\"MODIFY\"},{\"classFile\":\"com/htsc/android/mcrm/main/MainActivity\",\"lines\":[{\"endLineNum\":1317,\"startLineNum\":1316,\"type\":\"INSERT\"},{\"endLineNum\":1326,\"startLineNum\":1321,\"type\":\"INSERT\"}],\"methodInfos\":[{\"methodName\":\"test1\",\"parameters\":[]},{\"methodName\":\"test2\",\"parameters\":[]},{\"methodName\":\"test3\",\"parameters\":[]}],\"moduleName\":\"app\",\"type\":\"MODIFY\"}]",
+				"--middleDiffCode","[{\"classFile\":\"com/htsc/android/mcrm/test/HtscTestActivity\",\"lines\":[{\"endLineNum\":218,\"startLineNum\":217,\"type\":\"INSERT\"}],\"methodInfos\":[{\"methodName\":\"onClick\",\"parameters\":[\"View\"]}],\"moduleName\":\"app\",\"type\":\"MODIFY\"},{\"classFile\":\"com/htsc/android/mcrm/main/MainActivity\",\"lines\":[{\"endLineNum\":1328,\"startLineNum\":1324,\"type\":\"INSERT\"}],\"methodInfos\":[{\"methodName\":\"test3\",\"parameters\":[]}],\"moduleName\":\"app\",\"type\":\"MODIFY\"}]",
+				"--middleDiffCode","[{\"classFile\":\"com/htsc/android/mcrm/test/HtscTestActivity\",\"lines\":[{\"endLineNum\":218,\"startLineNum\":217,\"type\":\"INSERT\"}],\"methodInfos\":[{\"methodName\":\"onClick\",\"parameters\":[\"View\"]}],\"moduleName\":\"app\",\"type\":\"MODIFY\"},{\"classFile\":\"com/htsc/android/mcrm/main/MainActivity\",\"lines\":[{\"endLineNum\":1326,\"startLineNum\":1321,\"type\":\"INSERT\"}],\"methodInfos\":[{\"methodName\":\"test2\",\"parameters\":[]},{\"methodName\":\"test3\",\"parameters\":[]}],\"moduleName\":\"app\",\"type\":\"MODIFY\"}]"
+		);
+		assertOk();
+	}
+
 }

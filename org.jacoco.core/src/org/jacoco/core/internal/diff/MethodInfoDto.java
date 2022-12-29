@@ -43,4 +43,21 @@ public class MethodInfoDto {
 	public void setParameters(List<String> parameters) {
 		this.parameters = parameters;
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj instanceof MethodInfoDto){
+			MethodInfoDto temp = (MethodInfoDto)obj;
+			if(!methodName.equals(temp.methodName)){
+				return false;
+			}
+			for(String ps: parameters){
+				if(!temp.parameters.contains(ps)){
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
+	}
 }

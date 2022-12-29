@@ -105,7 +105,6 @@ public class ClassAnalyzer extends ClassProbesVisitor
                                final MethodVisitor methodVisitor) {
                 super.accept(methodNode, methodVisitor);
                 MethodProbesAdapter methodProbesAdapter = (MethodProbesAdapter) methodVisitor;
-                System.out.println("xianyu3 " + name + "   " + ((ClassProbesAdapter) methodProbesAdapter.getIdGenerator()).getCounter());
                 int probeEnd = ((ClassProbesAdapter) methodProbesAdapter.getIdGenerator()).getCounter();
                 addMethodCoverage(stringPool.get(name), stringPool.get(desc),
                         stringPool.get(signature), builder, methodNode, getCounterStart(), probeEnd);
@@ -132,6 +131,8 @@ public class ClassAnalyzer extends ClassProbesVisitor
                 signature, probes);
         mc.setProbeStart(probeStart);
         mc.setProbeEnd(probeEnd);
+        this.coverage.getName();
+        System.out.println("xianyu3 " +"class: "+this.coverage.getName() +"  method:  "+ name + "  start： " + probeStart+ "   end: "+probeEnd);
 
         mcc.calculate(mc);
 

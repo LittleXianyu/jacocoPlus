@@ -57,14 +57,14 @@ public class CodeDiffUtil {
 	 * @return Boolean
 	 */
 	public static Boolean checkMethodIn(String className, String methodName,
-			String desc) {
+			String desc, List<ClassInfoDto> classInfos) {
 		// 参数校验
-		if (null == CoverageBuilder.classInfos
-				|| CoverageBuilder.classInfos.isEmpty() || null == methodName
+		if (null == classInfos
+				|| classInfos.isEmpty() || null == methodName
 				|| null == className) {
 			return Boolean.FALSE;
 		}
-		ClassInfoDto classInfoDto = CoverageBuilder.classInfos.stream()
+		ClassInfoDto classInfoDto = classInfos.stream()
 				.filter(c -> className.equals(c.getClassFile())
 						|| className.split("\\$")[0].equals(c.getClassFile()))
 				.findFirst().orElse(null);

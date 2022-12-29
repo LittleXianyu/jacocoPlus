@@ -12,6 +12,7 @@
  *******************************************************************************/
 package org.jacoco.core.internal.diff;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -37,6 +38,10 @@ public class ClassInfoDto {
 		return classFile;
 	}
 
+	public ClassInfoDto(){
+		methodInfos = new ArrayList<>();
+	}
+
 	public void setClassFile(String classFile) {
 		this.classFile = classFile;
 	}
@@ -55,5 +60,16 @@ public class ClassInfoDto {
 
 	public void setType(String type) {
 		this.type = type;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj instanceof ClassInfoDto){
+			ClassInfoDto temp = (ClassInfoDto)obj;
+			if(temp.classFile.equals(classFile)){
+				return true;
+			}
+		}
+		return false;
 	}
 }
