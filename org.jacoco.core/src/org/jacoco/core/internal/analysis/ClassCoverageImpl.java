@@ -32,6 +32,18 @@ public class ClassCoverageImpl extends SourceNodeImpl
 	private String[] interfaces;
 	private String sourceFileName;
 
+	public int getProbesCount() {
+		return probesCount;
+	}
+
+	public void setProbesCount(int probesCount) {
+		this.probesCount = probesCount;
+	}
+
+	private int probesCount;
+
+	public  boolean[] probes;
+
 	/**
 	 * Creates a class coverage data object with the given parameters.
 	 *
@@ -44,11 +56,12 @@ public class ClassCoverageImpl extends SourceNodeImpl
 	 *            data
 	 */
 	public ClassCoverageImpl(final String name, final long id,
-			final boolean noMatch) {
+			final boolean noMatch,final boolean[] probes) {
 		super(ElementType.CLASS, name);
 		this.id = id;
 		this.noMatch = noMatch;
 		this.methods = new ArrayList<IMethodCoverage>();
+		this.probes = probes;
 	}
 
 	/**

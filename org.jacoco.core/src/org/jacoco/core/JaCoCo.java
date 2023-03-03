@@ -40,7 +40,8 @@ public final class JaCoCo {
 		final ResourceBundle bundle = ResourceBundle
 				.getBundle("org.jacoco.core.jacoco");
 		VERSION = bundle.getString("VERSION");
-		COMMITID = bundle.getString("COMMITID");
+//		COMMITID = bundle.getString("COMMITID");
+		COMMITID = "0b0d04816cad1d8a6eb407003db4702ee14d21fe";
 		COMMITID_SHORT = COMMITID.substring(0, 7);
 		HOMEURL = bundle.getString("HOMEURL");
 		RUNTIMEPACKAGE = bundle.getString("RUNTIMEPACKAGE");

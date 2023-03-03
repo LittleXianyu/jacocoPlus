@@ -26,7 +26,10 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jacoco.cli.internal.Command;
 import org.jacoco.core.analysis.*;
+import org.jacoco.core.data.ExecutionData;
 import org.jacoco.core.data.ExecutionDataStore;
+import org.jacoco.core.internal.analysis.ClassAnalyzer;
+import org.jacoco.core.internal.analysis.ClassCoverageImpl;
 import org.jacoco.core.internal.analysis.MethodCoverageImpl;
 import org.jacoco.core.internal.diff.ClassInfoDto;
 import org.jacoco.core.internal.diff.CodeDiffUtil;
@@ -116,7 +119,7 @@ public class Report extends Command {
             tempFiles.add(middleClassfiles.get(i));
             final IBundleCoverage oldBundle = analyze(oldLoader.getExecutionDataStore(),
                     out, tempFiles);// 读取class文件
-            mergeProbes(oldBundle, bundle, getOldDiffData().get(i), CoverageBuilder.classInfos);
+            mergeProbes(oldBundle, bundle, getOldDiffData().get(i), CoverageBuilder.classInfos, loader.getExecutionDataStore());
         }
 
         // 在运行analyze之前修改loader数据是可以，但是之后是无效的，所以目前是先通过mergeprobes修改了loader，再重新analyze
@@ -270,13 +273,19 @@ public class Report extends Command {
     }
 
     /**
-     * 计算未变的方法，在根据MethodCoverageImpl中记录的探针数组的开始结束位置，累加相同函数的探针数据
-     * @param middleBundle base和final中间的commit 生成的bundle
-     * @param finalBundle final commit生成的bundle
-     * @param middleDiff base和final中间的commit 生成的diff数据
-     * @param finalDiff final commit生成的diff数据
+     * 完全没有执行到的类，exec文件中没有类的probe的数据，就没有finalClasses
+     * MethodCoverageImpl 的offset是开始行，LineImpl[] lines是函数具体的行
      */
-    public void mergeProbes(IBundleCoverage middleBundle, IBundleCoverage finalBundle, List<ClassInfoDto> middleDiff, List<ClassInfoDto> finalDiff) {
+    /**
+     * 计算未变的方法，在根据MethodCoverageImpl中记录的探针数组的开始结束位置，累加相同函数的探针数据
+     *
+     * @param middleBundle base和final中间的commit 生成的bundle
+     * @param finalBundle  final commit生成的bundle
+     * @param middleDiff   base和final中间的commit 生成的diff数据
+     * @param finalDiff    final commit生成的diff数据
+     */
+    public void mergeProbes(IBundleCoverage middleBundle, IBundleCoverage finalBundle, List<ClassInfoDto> middleDiff,
+                            List<ClassInfoDto> finalDiff, final ExecutionDataStore executionDataStore) {
         List<ClassInfoDto> noChangeList = getNoChangeData(finalDiff, middleDiff);
 
         //com/lphtsccft/zhangle/foundation/framework/modular/ModularStartupImpl_getDeviceId_()Ljava/lang/String;
@@ -290,7 +299,7 @@ public class Report extends Command {
             for (IClassCoverage c : middleClasses) {
                 final Collection<IMethodCoverage> methods = c.getMethods();
                 for (IMethodCoverage methodCoverage : methods) {
-                    middleMethods.put(getClassName(c.getName()) + "_" + methodCoverage.getName() + "_" + methodCoverage.getDesc(), (MethodCoverageImpl) methodCoverage);
+                    middleMethods.put(c.getName() + "_" + methodCoverage.getName() + "_" + methodCoverage.getDesc(), (MethodCoverageImpl) methodCoverage);
                 }
             }
         }
@@ -307,16 +316,27 @@ public class Report extends Command {
                 for (IMethodCoverage methodCoverage : finalMethods) {
                     // commit base 到commit最新 中未变化的方法
                     if (CodeDiffUtil.checkMethodIn(c.getName(), methodCoverage.getName(), methodCoverage.getDesc(), noChangeList)) {
-                        boolean[] finalProbes = ((MethodCoverageImpl) methodCoverage).getProbes();
+                        boolean[] finalProbes = ((ClassCoverageImpl) c).probes;
                         int finalStart = ((MethodCoverageImpl) methodCoverage).getProbeStart();
                         int finalEnd = ((MethodCoverageImpl) methodCoverage).getProbeEnd();
-                        MethodCoverageImpl oldMethod = middleMethods.get(getClassName(c.getName()) + "_" + methodCoverage.getName() + "_" + methodCoverage.getDesc());
+                        MethodCoverageImpl oldMethod = middleMethods.get(c.getName() + "_" + methodCoverage.getName() + "_" + methodCoverage.getDesc());
                         boolean[] middleProbes = oldMethod.getProbes();
                         int middleStart = oldMethod.getProbeStart();
                         int middleEnd = oldMethod.getProbeEnd();
-                        if (middleEnd - middleStart != finalEnd - finalStart) {
+                        if (middleEnd - middleStart != finalEnd - finalStart || middleProbes == null) {
                             System.out.println("Error: probes for method start and end is error.");
                             break;
+                        }
+
+                        /**
+                         * 存在最终的exec中没有执行某个类，则这个类的probes是空，得单独生成一个probes数组对象给到ClassCoverageImpl
+                         */
+                        if (finalProbes == null) {
+                            finalProbes = new boolean[((ClassCoverageImpl) c).getProbesCount()];
+//                            ((MethodCoverageImpl) methodCoverage).probes = finalProbes;
+                            ((ClassCoverageImpl) c).probes = finalProbes;
+                            executionDataStore.getNames().add(c.getName());
+                            executionDataStore.getEntries().put(c.getId(), new ExecutionData(c.getId(), c.getName(), finalProbes));
                         }
                         // probe边界是[)
                         for (int i = finalStart, j = middleStart; i < finalEnd; i++, j++) {
@@ -332,9 +352,18 @@ public class Report extends Command {
 
     /**
      * 单个java文件可能编译长多个class文件，例如Main.java，编译成Main$1.class,Main$2.class等
+     * 内部类可能的命名：Main$listener$1,Main$listener
+     * Main$1$2$3??
+     * <p>
+     * 匿名内部类生成的class文件无法一一匹配，这个有点复杂
      */
     public String getClassName(String OriginName) {
-        return OriginName.split("\\$")[0];
+        String[] names = OriginName.split("\\$");
+        String endName = names[names.length - 1];
+        if (endName.charAt(0) >= '0' && endName.charAt(0) <= '9') {
+            return OriginName.substring(0, OriginName.length() - endName.length() - 1);
+        }
+        return OriginName;
     }
 
 }

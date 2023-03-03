@@ -29,7 +29,7 @@ public class MethodCoverageImpl extends SourceNodeImpl
 
     private int probeEnd;
 
-    private final boolean[] probes;
+    public  boolean[] probes;
 
     /**
      * Creates a method coverage data object with the given parameters.

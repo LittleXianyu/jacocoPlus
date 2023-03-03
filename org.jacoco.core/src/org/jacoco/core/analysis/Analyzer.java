@@ -92,7 +92,7 @@ public class Analyzer {
 			noMatch = false;
 		}
 		final ClassCoverageImpl coverage = new ClassCoverageImpl(className,
-				classid, noMatch);
+				classid, noMatch,probes);
 		final ClassAnalyzer analyzer = new ClassAnalyzer(coverage, probes,
 				stringPool) {
 			@Override

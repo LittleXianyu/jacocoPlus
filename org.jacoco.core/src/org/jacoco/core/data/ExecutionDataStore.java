@@ -29,6 +29,14 @@ import java.util.Set;
  */
 public final class ExecutionDataStore implements IExecutionDataVisitor {
 
+	public Map<Long, ExecutionData> getEntries() {
+		return entries;
+	}
+
+	public Set<String> getNames() {
+		return names;
+	}
+
 	private final Map<Long, ExecutionData> entries = new HashMap<Long, ExecutionData>();
 
 	private final Set<String> names = new HashSet<String>();

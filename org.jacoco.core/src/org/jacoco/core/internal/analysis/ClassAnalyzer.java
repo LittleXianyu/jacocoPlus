@@ -47,6 +47,7 @@ public class ClassAnalyzer extends ClassProbesVisitor
 
     private final IFilter filter;
 
+
     /**
      * Creates a new analyzer that builds coverage data for a class.
      *
@@ -132,7 +133,7 @@ public class ClassAnalyzer extends ClassProbesVisitor
         mc.setProbeStart(probeStart);
         mc.setProbeEnd(probeEnd);
         this.coverage.getName();
-        System.out.println("xianyu3 " +"class: "+this.coverage.getName() +"  method:  "+ name + "  start： " + probeStart+ "   end: "+probeEnd);
+        System.out.println("xianyu3 " + "class: " + this.coverage.getName() + "  method:  " + name + "  start： " + probeStart + "   end: " + probeEnd);
 
         mcc.calculate(mc);
 
@@ -154,6 +155,7 @@ public class ClassAnalyzer extends ClassProbesVisitor
     @Override
     public void visitTotalProbeCount(final int count) {
         // nothing to do
+        coverage.setProbesCount(count);
     }
 
     // IFilterContext implementation
