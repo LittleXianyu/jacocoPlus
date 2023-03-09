@@ -72,7 +72,7 @@ public class Report extends Command {
     String diffCode;
 
     @Option(name = "--middleDiffCode", usage = "input String for diff", metaVar = "<file>")
-    List<String> oldDiffCode = new ArrayList<>();
+    List<String> oldDiffCode = new ArrayList();
 
     @Option(name = "--diffCodeFiles", usage = "input file for diff", metaVar = "<path>")
     String diffCodeFiles;
@@ -132,7 +132,7 @@ public class Report extends Command {
 
     public List<List<ClassInfoDto>> getOldDiffData() {
         Gson gson = new Gson();
-        List<List<ClassInfoDto>> results = new ArrayList<>();
+        List<List<ClassInfoDto>> results = new ArrayList();
         for (String diffCode : this.oldDiffCode) {
             List<ClassInfoDto> classInfos = gson.fromJson(diffCode,
                     new TypeToken<List<ClassInfoDto>>() {

@@ -243,4 +243,22 @@ public class ReportTest extends CommandTestBase {
         assertOk();
     }
 
+    @Test
+    public void mytest5() throws Exception {
+        execute("report",
+                "/Users/cc/Project/MyProject/code-diff-source/test_data_3/final.exec",
+                "--middleexec",
+                "/Users/cc/Project/MyProject/code-diff-source/test_data_3/middle.exec",
+                "--middleclassfiles",
+                "/Users/cc/Project/MyProject/code-diff-source/test_data_3/class_middle",
+                "--classfiles",
+                "/Users/cc/Project/MyProject/code-diff-source/test_data_3/class_final",
+                "--sourcefiles",
+                "/Users/cc/Project/MyProject/code-diff-source/test_data_3/source/java",
+                "--html", "/Users/cc/Project/MyProject/code-diff/html0308",
+                "--diffCode", "[{\"classFile\":\"com/lphtsccft/zhangle/test/HtscTestActivity\",\"lines\":[{\"endLineNum\":9,\"startLineNum\":8,\"type\":\"INSERT\"},{\"endLineNum\":219,\"startLineNum\":218,\"type\":\"INSERT\"},{\"endLineNum\":221,\"startLineNum\":220,\"type\":\"INSERT\"},{\"endLineNum\":227,\"startLineNum\":226,\"type\":\"INSERT\"},{\"endLineNum\":249,\"startLineNum\":245,\"type\":\"INSERT\"}],\"methodInfos\":[{\"methodName\":\"onClick\",\"parameters\":[\"View\"]},{\"methodName\":\"testJacoco\",\"parameters\":[]}],\"moduleName\":\"app\",\"type\":\"MODIFY\"}]",
+                "--middleDiffCode", "[{\"classFile\":\"com/lphtsccft/zhangle/test/HtscTestActivity\",\"lines\":[{\"endLineNum\":219,\"startLineNum\":218,\"type\":\"INSERT\"}],\"methodInfos\":[{\"methodName\":\"onClick\",\"parameters\":[\"View\"]}],\"moduleName\":\"app\",\"type\":\"MODIFY\"}]"
+        );
+        assertOk();
+    }
 }

@@ -78,9 +78,8 @@ public class ClassProbesAdapter extends ClassVisitor
                         ((ClassAnalyzer.InnerMethodAnalyzer) methodProbes).setCounterStart(counter);
                     }
                 } else {
-//					methodProbes = EMPTY_METHOD_PROBES_VISITOR;
+                    methodProbes = EMPTY_METHOD_PROBES_VISITOR;
                     System.out.println("xianyu0 classname: " + this.name + "    methodName: " + name + "   start count: " + counter);
-                    methodProbes = mv;
                     if (methodProbes instanceof ClassAnalyzer.InnerMethodAnalyzer) {
                         ((ClassAnalyzer.InnerMethodAnalyzer) methodProbes).setCounterStart(counter);
                     }
