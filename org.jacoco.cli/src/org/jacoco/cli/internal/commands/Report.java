@@ -62,7 +62,7 @@ public class Report extends Command {
     @Option(name = "--classfiles", usage = "location of Java class files", metaVar = "<path>", required = true)
     List<File> classfiles = new ArrayList<File>();
 
-    @Option(name = "--middleclassfiles", usage = "location of Java class files", metaVar = "<path>", required = true)
+    @Option(name = "--middleclassfiles", usage = "location of Java class files", metaVar = "<path>")
     List<File> middleClassfiles = new ArrayList<File>();
 
     @Option(name = "--sourcefiles", usage = "location of the source files", metaVar = "<path>")
